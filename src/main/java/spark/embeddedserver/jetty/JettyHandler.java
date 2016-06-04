@@ -18,12 +18,15 @@ package spark.embeddedserver.jetty;
 
 import java.io.IOException;
 
+import java.util.EnumSet;
 import javax.servlet.Filter;
 import javax.servlet.ServletException;
+import javax.servlet.SessionTrackingMode;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.session.HashSessionManager;
 import org.eclipse.jetty.server.session.SessionHandler;
 
 /**
@@ -37,6 +40,11 @@ public class JettyHandler extends SessionHandler {
 
     public JettyHandler(Filter filter) {
         this.filter = filter;
+
+        HashSessionManager sessionManager = new HashSessionManager();
+        sessionManager.setSessionTrackingModes(EnumSet.of(SessionTrackingMode.COOKIE));
+        sessionManager.setSessionCookie("zid");
+        setSessionManager(sessionManager);
     }
 
     @Override

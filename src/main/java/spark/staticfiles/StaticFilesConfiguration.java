@@ -65,6 +65,10 @@ public class StaticFilesConfiguration {
     public boolean consume(HttpServletRequest httpRequest,
                            HttpServletResponse httpResponse) throws IOException {
 
+        if (httpRequest.getRequestURI().endsWith(".css")) {
+            httpResponse.setContentType("text/css");
+        }
+
         if (consumeWithFileResourceHandlers(httpRequest, httpResponse)) {
             return true;
         }
