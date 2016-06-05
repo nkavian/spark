@@ -90,11 +90,10 @@ public class StaticFilesConfiguration {
                 AbstractFileResolvingResource resource = staticResourceHandler.getResource(httpRequest);
 
                 if (resource != null && resource.isReadable()) {
-                    OutputStream wrappedOutputStream = GzipUtils.checkAndWrap(httpRequest, httpResponse, false);
-                    customHeaders.forEach(httpResponse::setHeader); //add all user-defined headers to response
-                    IOUtils.copy(resource.getInputStream(), wrappedOutputStream);
-                    wrappedOutputStream.flush();
-                    wrappedOutputStream.close();
+                    try (InputStream inputStream = resource.getInputStream(); OutputStream wrappedOutputStream = GzipUtils.checkAndWrap(httpRequest, httpResponse, false)) {
+                        customHeaders.forEach(httpResponse::setHeader); //add all user-defined headers to response
+                        IOUtils.copy(inputStream, wrappedOutputStream);
+                    }
                     return true;
                 }
             }
@@ -111,14 +110,10 @@ public class StaticFilesConfiguration {
                 InputStream stream = jarResourceHandler.getResource(httpRequest);
 
                 if (stream != null) {
-                    OutputStream wrappedOutputStream = GzipUtils.checkAndWrap(httpRequest, httpResponse, false);
-                    customHeaders.forEach(httpResponse::setHeader); //add all user-defined headers to response
-
-                    IOUtils.copy(stream, wrappedOutputStream);
-
-                    wrappedOutputStream.flush();
-                    wrappedOutputStream.close();
-
+                    try (InputStream inputStream = stream; OutputStream wrappedOutputStream = GzipUtils.checkAndWrap(httpRequest, httpResponse, false)) {
+                        customHeaders.forEach(httpResponse::setHeader); //add all user-defined headers to response
+                        IOUtils.copy(inputStream, wrappedOutputStream);
+                    }
                     return true;
                 }
             }
