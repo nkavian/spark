@@ -20,7 +20,7 @@ public class SocketConnectorFactoryTest {
     public void testCreateSocketConnector_whenServerIsNull_thenThrowException() {
 
         try {
-            SocketConnectorFactory.createSocketConnector(null, "host", 80);
+            SocketConnectorFactory.createSocketConnector(null, null, "host", 80);
             fail("SocketConnector creation should have thrown an IllegalArgumentException");
         } catch(IllegalArgumentException ex) {
             assertEquals("'server' must not be null", ex.getMessage());
@@ -34,7 +34,7 @@ public class SocketConnectorFactoryTest {
         Server server = new Server();
 
         try {
-            SocketConnectorFactory.createSocketConnector(server, null, 80);
+            SocketConnectorFactory.createSocketConnector(null, server, null, 80);
             fail("SocketConnector creation should have thrown an IllegalArgumentException");
         } catch(IllegalArgumentException ex) {
             assertEquals("'host' must not be null", ex.getMessage());
@@ -48,7 +48,7 @@ public class SocketConnectorFactoryTest {
         final int port = 8888;
 
         Server server = new Server();
-        ServerConnector serverConnector = SocketConnectorFactory.createSocketConnector(server, "localhost", 8888);
+        ServerConnector serverConnector = SocketConnectorFactory.createSocketConnector(null, server, "localhost", 8888);
 
         String internalHost = Whitebox.getInternalState(serverConnector, "_host");
         int internalPort = Whitebox.getInternalState(serverConnector, "_port");

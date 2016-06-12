@@ -47,6 +47,7 @@ public class EmbeddedServers {
      * Creates an embedded server of type corresponding to the provided identifier.
      */
     public static EmbeddedServer create(Object identifier,
+                                        String serviceName,
                                         Routes routeMatcher,
                                         StaticFilesConfiguration staticFilesConfiguration,
                                         boolean multipleHandlers) {
@@ -54,7 +55,7 @@ public class EmbeddedServers {
         EmbeddedServerFactory factory = factories.get(identifier);
 
         if (factory != null) {
-            return factory.create(routeMatcher, staticFilesConfiguration, multipleHandlers);
+            return factory.create(serviceName, routeMatcher, staticFilesConfiguration, multipleHandlers);
         } else {
             throw new RuntimeException("No embedded server matching the identifier");
         }

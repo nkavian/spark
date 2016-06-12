@@ -39,7 +39,8 @@ public interface EmbeddedServer {
      * @param minThreads              - min nbr of threads.
      * @param threadIdleTimeoutMillis - idle timeout (ms).
      */
-    void ignite(String host,
+    void ignite(String serviceName,
+                String host,
                 int port,
                 SslStores sslStores,
                 CountDownLatch latch,

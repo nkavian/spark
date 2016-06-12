@@ -71,7 +71,8 @@ public class EmbeddedJettyServer implements EmbeddedServer {
      * {@inheritDoc}
      */
     @Override
-    public void ignite(String host,
+    public void ignite(String serviceName,
+                       String host,
                        int port,
                        SslStores sslStores,
                        CountDownLatch latch,
@@ -88,12 +89,12 @@ public class EmbeddedJettyServer implements EmbeddedServer {
             }
         }
 
-        server = JettyServer.create(maxThreads, minThreads, threadIdleTimeoutMillis);
+        server = JettyServer.create(serviceName, maxThreads, minThreads, threadIdleTimeoutMillis);
 
         ServerConnector connector;
 
         if (sslStores == null) {
-            connector = SocketConnectorFactory.createSocketConnector(server, host, port);
+            connector = SocketConnectorFactory.createSocketConnector(serviceName, server, host, port);
         } else {
             connector = SocketConnectorFactory.createSecureSocketConnector(server, host, port, sslStores);
         }

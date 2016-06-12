@@ -76,6 +76,7 @@ public final class Service extends Routable {
 
     private Object embeddedServerIdentifier = null;
 
+    private final String serviceName;
     public final Redirect redirect;
     public final StaticFiles staticFiles;
 
@@ -86,10 +87,19 @@ public final class Service extends Routable {
      * multiple services in one process.
      */
     public static Service ignite() {
-        return new Service();
+        return new Service(null);
     }
 
-    private Service() {
+    /**
+     * Creates a new Service (a Spark instance). This should be used instead of the static API if the user wants
+     * multiple services in one process.
+     */
+    public static Service ignite(String serviceName) {
+        return new Service(serviceName);
+    }
+
+    private Service(String serviceName) {
+        this.serviceName = serviceName;
         redirect = Redirect.create(this);
         staticFiles = new StaticFiles();
 
@@ -340,6 +350,7 @@ public final class Service extends Routable {
                     }
 
                     server = EmbeddedServers.create(embeddedServerIdentifier,
+                                                    serviceName,
                                                     routes,
                                                     staticFilesConfiguration,
                                                     hasMultipleHandlers());
@@ -347,6 +358,7 @@ public final class Service extends Routable {
                     server.configureWebSockets(webSocketHandlers, webSocketIdleTimeoutMillis);
 
                     server.ignite(
+                            serviceName,
                             ipAddress,
                             port,
                             sslStores,

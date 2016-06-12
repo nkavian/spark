@@ -16,6 +16,8 @@
  */
 package spark.embeddedserver.jetty;
 
+import spark.metrics.InstrumentedHandler;
+import org.eclipse.jetty.server.Handler;
 import spark.embeddedserver.EmbeddedServer;
 import spark.embeddedserver.EmbeddedServerFactory;
 import spark.http.matching.MatcherFilter;
@@ -27,11 +29,18 @@ import spark.staticfiles.StaticFilesConfiguration;
  */
 public class EmbeddedJettyFactory implements EmbeddedServerFactory {
 
-    public EmbeddedServer create(Routes routeMatcher, StaticFilesConfiguration staticFilesConfiguration, boolean hasMultipleHandler) {
+    public EmbeddedServer create(String serviceName, Routes routeMatcher, StaticFilesConfiguration staticFilesConfiguration, boolean hasMultipleHandler) {
         MatcherFilter matcherFilter = new MatcherFilter(routeMatcher, staticFilesConfiguration, false, hasMultipleHandler);
         matcherFilter.init(null);
 
-        JettyHandler handler = new JettyHandler(matcherFilter);
+        Handler handler;
+        if (JettyServer.ENABLE_JMX && serviceName != null && !serviceName.isEmpty()) {
+            final InstrumentedHandler instrumented = new InstrumentedHandler(JettyServer.REGISTRY, serviceName);
+            instrumented.setHandler(new JettyHandler(matcherFilter));
+            handler = instrumented;
+        } else {
+            handler = new JettyHandler(matcherFilter);
+        }
         return new EmbeddedJettyServer(handler);
     }
 

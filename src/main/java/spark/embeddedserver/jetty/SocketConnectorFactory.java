@@ -17,11 +17,13 @@
 package spark.embeddedserver.jetty;
 
 import java.util.concurrent.TimeUnit;
-
+import org.eclipse.jetty.server.ConnectionFactory;
+import org.eclipse.jetty.server.HttpConfiguration;
+import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-
+import spark.metrics.InstrumentedConnectionFactory;
 import spark.ssl.SslStores;
 import spark.utils.Assert;
 
@@ -38,11 +40,21 @@ public class SocketConnectorFactory {
      * @param port   port
      * @return - a server jetty
      */
-    public static ServerConnector createSocketConnector(Server server, String host, int port) {
+    public static ServerConnector createSocketConnector(String serviceName, Server server, String host, int port) {
         Assert.notNull(server, "'server' must not be null");
         Assert.notNull(host, "'host' must not be null");
 
-        ServerConnector connector = new ServerConnector(server);
+        ServerConnector connector;
+        if (JettyServer.ENABLE_JMX && serviceName != null && !serviceName.isEmpty()) {
+            final HttpConfiguration httpConfig = new HttpConfiguration();
+            final ConnectionFactory connectionFactory = new InstrumentedConnectionFactory(
+                JettyServer.REGISTRY,
+                serviceName,
+                new HttpConnectionFactory(httpConfig));
+            connector = new ServerConnector(server, connectionFactory);
+        } else {
+            connector = new ServerConnector(server);
+        }
         initializeConnector(connector, host, port);
         return connector;
     }

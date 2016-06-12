@@ -18,11 +18,31 @@ package spark.embeddedserver.jetty;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import com.codahale.metrics.JmxReporter;
+import com.codahale.metrics.MetricRegistry;
+import spark.metrics.InstrumentedQueuedThreadPool;
 
 /**
  * Creates Jetty Server instances.
  */
 class JettyServer {
+
+    static final boolean ENABLE_JMX;
+    static final MetricRegistry REGISTRY;
+    static final JmxReporter REPORTER;
+
+    static {
+        if (System.getProperty("com.sun.management.jmxremote") != null) {
+            ENABLE_JMX = true;
+            REGISTRY = new MetricRegistry();
+            REPORTER = JmxReporter.forRegistry(REGISTRY).build();
+            REPORTER.start();
+        } else {
+            ENABLE_JMX = false;
+            REGISTRY = null;
+            REPORTER = null;
+        }
+    }
 
     /**
      * Creates a Jetty server.
@@ -32,7 +52,7 @@ class JettyServer {
      * @param threadTimeoutMillis threadTimeoutMillis
      * @return a new jetty server instance
      */
-    public static Server create(int maxThreads, int minThreads, int threadTimeoutMillis) {
+    public static Server create(String serviceName, int maxThreads, int minThreads, int threadTimeoutMillis) {
         Server server;
 
         if (maxThreads > 0) {
@@ -40,9 +60,15 @@ class JettyServer {
             int min = (minThreads > 0) ? minThreads : 8;
             int idleTimeout = (threadTimeoutMillis > 0) ? threadTimeoutMillis : 60000;
 
-            server = new Server(new QueuedThreadPool(max, min, idleTimeout));
+            QueuedThreadPool pool = ENABLE_JMX && serviceName != null && !serviceName.isEmpty()
+                ? new InstrumentedQueuedThreadPool(JettyServer.REGISTRY, serviceName, max, min, idleTimeout)
+                : new QueuedThreadPool(max, min, idleTimeout);
+            server = new Server(pool);
         } else {
-            server = new Server();
+            QueuedThreadPool pool = ENABLE_JMX && serviceName != null && !serviceName.isEmpty()
+                ? new InstrumentedQueuedThreadPool(JettyServer.REGISTRY, serviceName)
+                : new QueuedThreadPool();
+            server = new Server(pool);
         }
 
         return server;
